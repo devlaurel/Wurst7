@@ -11,6 +11,7 @@ import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.KnockbackListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 
@@ -19,16 +20,26 @@ import net.wurstclient.settings.SliderSetting.ValueDisplay;
 public final class AntiKnockbackHack extends Hack implements KnockbackListener
 {
 	private final SliderSetting hStrength =
-		new SliderSetting("Horizontal Strength",
-			"How far to reduce horizontal knockback.\n"
-				+ "100% = no knockback\n" + ">100% = reverse knockback",
-			1, 0.01, 2, 0.01, ValueDisplay.PERCENTAGE);
+		new SliderSetting("Horizontal knockback",
+			"How much horizontal knockback to take.\n"
+				+ "0% = no knockback",
+			0, 0.0, 1, 0.01, ValueDisplay.PERCENTAGE);
 	
 	private final SliderSetting vStrength =
-		new SliderSetting("Vertical Strength",
-			"How far to reduce vertical knockback.\n" + "100% = no knockback\n"
-				+ ">100% = reverse knockback",
-			1, 0.01, 2, 0.01, ValueDisplay.PERCENTAGE);
+		new SliderSetting("Vertical knockback",
+			"How much vertical knockback to take.\n" + "0% = no knockback",
+			0, 0.0, 1, 0.01, ValueDisplay.PERCENTAGE);
+
+	private final CheckboxSetting reverseHorizontal =
+			new CheckboxSetting("Reverse horizontal knockback",
+			"Makes your horizontal knockback go in the opposite direction",
+			false);
+
+	private final CheckboxSetting reverseVertical =
+			new CheckboxSetting("Reverse vertical knockback",
+					"Makes your vertical knockback go in the opposite direction",
+					false);
+
 	
 	public AntiKnockbackHack()
 	{
@@ -37,6 +48,8 @@ public final class AntiKnockbackHack extends Hack implements KnockbackListener
 		setCategory(Category.COMBAT);
 		addSetting(hStrength);
 		addSetting(vStrength);
+		addSetting(reverseHorizontal);
+		addSetting(reverseVertical);
 	}
 	
 	@Override
@@ -52,13 +65,12 @@ public final class AntiKnockbackHack extends Hack implements KnockbackListener
 	}
 	
 	@Override
-	public void onKnockback(KnockbackEvent event)
-	{
-		double verticalMultiplier = 1 - vStrength.getValue();
-		double horizontalMultiplier = 1 - hStrength.getValue();
-		
-		event.setX(event.getDefaultX() * horizontalMultiplier);
-		event.setY(event.getDefaultY() * verticalMultiplier);
-		event.setZ(event.getDefaultZ() * horizontalMultiplier);
+	public void onKnockback(KnockbackEvent event) {
+		double verticalMultiplier = vStrength.getValue();
+		double horizontalMultiplier = hStrength.getValue();
+
+		event.setX(event.getDefaultX() * horizontalMultiplier * (reverseHorizontal.isChecked() ? -1 : 1));
+		event.setY(event.getDefaultY() * verticalMultiplier * (reverseHorizontal.isChecked() ? -1 : 1));
+		event.setZ(event.getDefaultZ() * horizontalMultiplier * (reverseHorizontal.isChecked() ? -1 : 1));
 	}
 }
